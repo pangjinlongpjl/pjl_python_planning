@@ -99,8 +99,8 @@ class RRTPlanner:
         self.goal_node_ = Node(self.goal_[0],self.goal_[1])
         # 初始化生成树
         #self.tree_ = [self.start_node_]
-        self.start_point_1 = Node(self.start_node_.x_+0.5*self.expand_dis_*math.cos(self.start_direction),
-                                    self.start_node_.y_+0.5*self.expand_dis_*math.sin(self.start_direction))
+        self.start_point_1 = Node(self.start_node_.x_+ self.expand_dis_*math.cos(self.start_direction),
+                                    self.start_node_.y_+ self.expand_dis_*math.sin(self.start_direction))
 
         self.start_point_1 = self.expandNewNode(self.start_node_, self.start_point_1)
         
@@ -384,8 +384,8 @@ class RRTPlanner:
             c_x = T_x_1 + x*np.cos(toward_angle_1) - (y*np.sin(toward_angle_1))
             c_y = T_y_1 + x*np.sin(toward_angle_1) + (y*np.cos(toward_angle_1))
 
-            print ("c_x", c_x)
-            print ("c_y", c_y)
+            #print ("c_x", c_x)
+            #print ("c_y", c_y)
 
             clothoid_x.append(c_x)
             clothoid_y.append(c_y)
@@ -442,15 +442,19 @@ class RRTPlanner:
         distance = self.expand_dis_
         x, y = init_node.x_, init_node.y_
         path_x, path_y = [], []
+        print ("init_node.x_ ", init_node.x_, "init_node.y_ ", init_node.y_)
         for sample in np.arange(0.0, distance + PATH_RESOLUTION, PATH_RESOLUTION):
             x = sample * np.cos(theta) + init_node.x_
             y = sample * np.sin(theta) + init_node.y_
+            print ("x ", x, "y ", y)
             path_x.append(x)
             path_y.append(y)
         # 构造新的节点
         new_node = Node(x, y)
-        new_node.path_x_= path_x[:-1]
-        new_node.path_y_ = path_y[:-1]
+        #new_node.path_x_= path_x[:-1]
+        #new_node.path_y_ = path_y[:-1]
+        new_node.path_x_= path_x
+        new_node.path_y_ = path_y
         new_node.parent_ = init_node
         return new_node
 
@@ -515,8 +519,8 @@ def main():
     #goal = Point(0.0, 45.0)
 
     #初始化起点,终点信息
-    start = [0.0, -45.0]
-    goal = [0.0, 45.0]
+    start = [0.0, -95.0]
+    goal = [0.0, 95.0]
 
     # # 初始化边界障碍物信息
     # # 构建障碍物
@@ -561,7 +565,7 @@ def main():
         # (9, 5, 2)
     ]  # [x,y,size]
     # 初始化采样
-    rand_area=[-50.0, 50.0]
+    rand_area=[-100.0, 100.0]
     # 初始化步长
     expand_dis = 20.0
     # 初始化最大迭代次数
