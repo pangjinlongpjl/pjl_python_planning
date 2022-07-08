@@ -429,13 +429,14 @@ class RRTStarPlanner:
             return Node(random.uniform(self.rand_area_[0], self.rand_area_[1]), random.uniform(self.rand_area_[0], self.rand_area_[1]))
     
     # 获得新的节点
-    def expandNewNode(self, init_node, end_node, max_distance=float('inf')):
+    def expandNewNode(self, init_node, end_node, max_distance=float('inf'), min_distance=0.0, is_end = False):
         # 计算初始节点到结束节点的距离和朝向
         distance = self.calcNodesDistance(init_node, end_node)
         theta = np.arctan2(end_node.y_ - init_node.y_, end_node.x_ - init_node.x_)
         # 计算从初始节点到结束节点的路径
         #print ("max_distance ", max_distance)
         distance = min(distance, max_distance)
+        distance = max(distance, min_distance)
         #distance = min(distance, self.expand_dis_)
         #distance = self.expand_dis_
         x, y = init_node.x_, init_node.y_
@@ -445,8 +446,14 @@ class RRTStarPlanner:
             y = sample * np.sin(theta) + init_node.y_
             path_x.append(x)
             path_y.append(y)
+        if is_end:
+            path_x.append(end_node.x_)
+            path_y.append(end_node.y_)
         # 构造新的节点
-        new_node = Node(x, y)
+        if is_end:
+            new_node = Node(end_node.x_,end_node.y_)
+        else:
+            new_node = Node(x, y)
         #new_node.path_x_= path_x[:-1]
         #new_node.path_y_ = path_y[:-1]
         new_node.path_x_= path_x
@@ -507,7 +514,8 @@ class RRTStarPlanner:
         for neighbor_node_index in neighbor_node_indexes:
             neighbor_node = self.tree_[neighbor_node_index]
             # 构建临时节
-            temp_node = self.expandNewNode(neighbor_node, node, self.expand_dis_)
+            #temp_node = self.expandNewNode(neighbor_node, node, self.expand_dis_)
+            temp_node = self.expandNewNode(neighbor_node, node)
             # 判断临时节点是否发生碰撞
             if not self.isCollision(temp_node):
                 # 如果没有发生碰撞,加入列表中
@@ -528,7 +536,7 @@ class RRTStarPlanner:
         for neighbor_node_index in neighbor_node_indexes:
             neighbor_node = self.tree_[neighbor_node_index]
             # 构建临时节点
-            temp_node = self.expandNewNode(node, neighbor_node)
+            temp_node = self.expandNewNode(node, neighbor_node, float('inf'), 0.0, True)
             # 计算临时节点的夹角
             theta = self.getVectorAngle(temp_node.parent_.parent_, temp_node.parent_, temp_node)
             # 判断是否发生碰撞
@@ -593,7 +601,7 @@ class RRTStarPlanner:
         plt.axis([self.rand_area_[0], self.rand_area_[1], self.rand_area_[0], self.rand_area_[1]])
         plt.grid(True)
         plt.gca().set_aspect(1)
-        plt.pause(0.5)
+        #plt.pause(0.5)
 
 # 主函数
 def main():
@@ -614,7 +622,7 @@ def main():
     # 初始化步长
     expand_dis = 20.0
     # 初始化最大迭代次数
-    max_iter = 300
+    max_iter = 2000
     # 初始化随机点采样概率
     rand_rate = 0.9
     # 初始邻居半径
